@@ -177,29 +177,31 @@ AudioEffectReverb::update(void)
   if (!block->data)
     return;
 
-  arm_q15_to_q31(block->data, q31_buf, AUDIO_BLOCK_SAMPLES);
+  if (!bypass) {
+    arm_q15_to_q31(block->data, q31_buf, AUDIO_BLOCK_SAMPLES);
 
-  _do_comb_apf(&apf[0], q31_buf, q31_buf);
-  _do_comb_apf(&apf[1], q31_buf, q31_buf);
+    _do_comb_apf(&apf[0], q31_buf, q31_buf);
+    _do_comb_apf(&apf[1], q31_buf, q31_buf);
 
-  _do_comb_lpf(&lpf[0], q31_buf, sum_buf);
-  arm_shift_q31(sum_buf, -3, sum_buf, AUDIO_BLOCK_SAMPLES);
+    _do_comb_lpf(&lpf[0], q31_buf, sum_buf);
+    arm_shift_q31(sum_buf, -3, sum_buf, AUDIO_BLOCK_SAMPLES);
 
-  _do_comb_lpf(&lpf[1], q31_buf, aux_buf);
-  arm_shift_q31(aux_buf, -3, aux_buf, AUDIO_BLOCK_SAMPLES);
-  arm_add_q31(sum_buf, aux_buf, sum_buf, AUDIO_BLOCK_SAMPLES);
+    _do_comb_lpf(&lpf[1], q31_buf, aux_buf);
+    arm_shift_q31(aux_buf, -3, aux_buf, AUDIO_BLOCK_SAMPLES);
+    arm_add_q31(sum_buf, aux_buf, sum_buf, AUDIO_BLOCK_SAMPLES);
 
-  _do_comb_lpf(&lpf[2], q31_buf, aux_buf);
-  arm_shift_q31(aux_buf, -3, aux_buf, AUDIO_BLOCK_SAMPLES);
-  arm_add_q31(sum_buf, aux_buf, sum_buf, AUDIO_BLOCK_SAMPLES);
+    _do_comb_lpf(&lpf[2], q31_buf, aux_buf);
+    arm_shift_q31(aux_buf, -3, aux_buf, AUDIO_BLOCK_SAMPLES);
+    arm_add_q31(sum_buf, aux_buf, sum_buf, AUDIO_BLOCK_SAMPLES);
 
-  _do_comb_lpf(&lpf[3], q31_buf, aux_buf);
-  arm_shift_q31(aux_buf, -3, aux_buf, AUDIO_BLOCK_SAMPLES);
-  arm_add_q31(sum_buf, aux_buf, sum_buf, AUDIO_BLOCK_SAMPLES);
+    _do_comb_lpf(&lpf[3], q31_buf, aux_buf);
+    arm_shift_q31(aux_buf, -3, aux_buf, AUDIO_BLOCK_SAMPLES);
+    arm_add_q31(sum_buf, aux_buf, sum_buf, AUDIO_BLOCK_SAMPLES);
 
-  _do_comb_apf(&apf[2], sum_buf, q31_buf);
+    _do_comb_apf(&apf[2], sum_buf, q31_buf);
 
-  arm_q31_to_q15(q31_buf, block->data, AUDIO_BLOCK_SAMPLES);
+    arm_q31_to_q15(q31_buf, block->data, AUDIO_BLOCK_SAMPLES);
+  }
 
   transmit(block, 0);
   release(block);
